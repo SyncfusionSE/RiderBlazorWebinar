@@ -1,0 +1,48 @@
+@page "/EnterData"
+@using RiderBlasorWebinar.Shared.Models
+@inject HttpClient HttpClient
+
+@using System.Net
+<h3>EnterData</h3>
+
+<SfRangeNavigator ValueType="RangeValueType.DateTime" 
+                  IntervalType="RangeIntervalType.Months" LabelFormat="MMM">
+    <RangeNavigatorSeriesCollection>
+        <RangeNavigatorSeries 
+            DataSource="Orders" XName="Workdate" Type="RangeNavigatorType.Line" YName="Somevalue">
+        </RangeNavigatorSeries>
+    </RangeNavigatorSeriesCollection>
+    <RangeNavigatorEvents Changed="OnRangeChanged"></RangeNavigatorEvents></SfRangeNavigator>
+
+
+<SfGrid DataSource="Orders1"></SfGrid>
+
+@code {
+    private WorkOrder[]? Orders;
+
+    private WorkOrder[]? Orders1;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        Orders = await HttpClient.GetFromJsonAsync<WorkOrder[]>("DoWork");
+        Orders1 = Orders;
+    }
+
+    private void OnRangeChanged(ChangedEventArgs args)
+    {
+        if (Orders != null)
+        {
+            List<WorkOrder> filterData1 = new List<WorkOrder>();
+
+            for (int i = 0; i < Orders.Length; i++)
+            {
+                if (Orders[i].Workdate >= Convert.ToDateTime(args.Start) && Orders[i].Workdate <= Convert.ToDateTime(args.End))
+                {
+                    filterData1.Add(Orders[i]);
+                }
+            }
+            Orders1 = filterData1.ToArray();
+            StateHasChanged();
+        }
+    }
+}
